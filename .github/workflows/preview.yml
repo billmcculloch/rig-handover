@@ -9,6 +9,10 @@ on:
         description: Show LANE_MARKER in the banner
         type: boolean
         default: true
+      path:
+        description: Page to save, e.g. /digest/2026-10-28
+        type: string
+        default: /digest/2026-10-28
 
 permissions:
   contents: read
@@ -32,14 +36,16 @@ jobs:
         with:
           node-version: 22
       - run: pnpm install
-      - name: Save /digest/2026-10-28
+      - name: Save ${{ inputs.path }}
         env:
           LANE_MARKER: ${{ inputs.marker && secrets.LANE_MARKER || '' }}
+          PAGE: ${{ inputs.path }}
         run: |
+          [[ "$PAGE" =~ ^/[A-Za-z0-9/_-]*$ ]] || { echo "bad path: $PAGE"; exit 1; }
           pnpm start &
           for i in $(seq 30); do curl -sf http://localhost:8787/health && break; sleep 1; done
           mkdir _site
-          curl -sf http://localhost:8787/digest/2026-10-28 -o _site/index.html
+          curl -sf "http://localhost:8787$PAGE" -o _site/index.html
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site

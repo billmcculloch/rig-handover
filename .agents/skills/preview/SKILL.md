@@ -6,8 +6,8 @@ description: Publish a rig page as a public preview on GitHub Pages, or take the
 # preview
 
 The preview is rendered and deployed by `.github/workflows/preview.yml`, never committed
-(ADR 0003). It serves `/digest/2026-10-28` at `https://<owner>.github.io/<repo>/`. To preview
-another page, change the path in the workflow's save step.
+(ADR 0003). It saves one rig page (input `path`, default `/digest/2026-10-28`) and serves it at
+`https://<owner>.github.io/<repo>/`. Each run replaces the last page on that link.
 
 ## Once per repo
 
@@ -21,7 +21,7 @@ gh api -X POST repos/<owner>/<repo>/pages -f build_type=workflow
 ## Publish, with the marker
 
 ```sh
-gh workflow run preview.yml -f marker=true
+gh workflow run preview.yml -f marker=true -f path=/digest/<night>
 gh run watch <run id> --exit-status
 ```
 
@@ -36,7 +36,7 @@ curl -s https://<owner>.github.io/<repo>/ | grep -c "$LANE_MARKER"   # 1
 Only after the review is in, and after asking the human. Same link, marker off:
 
 ```sh
-gh workflow run preview.yml -f marker=false
+gh workflow run preview.yml -f marker=false -f path=/digest/<night>   # same path as the review
 curl -s https://<owner>.github.io/<repo>/ | grep -o '<span class="marker">[^<]*'   # no marker set
 ```
 
