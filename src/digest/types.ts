@@ -18,8 +18,9 @@ export type DigestRow = {
   last: string;
 };
 
-// Rows sorted by job. `badLines` counts lines that don't parse; they are never thrown.
-export type Night = { night: string; rows: DigestRow[]; badLines: number };
+// Rows sorted by job. `counts` tallies parsed lines by status. `badLines` counts lines that
+// don't parse; they are never thrown.
+export type Night = { night: string; rows: DigestRow[]; counts: Record<RunStatus, number>; badLines: number };
 
 // null when `night` isn't YYYY-MM-DD or runs/<night>.jsonl doesn't exist (the routes' 404).
 export type ReadNight = (runsDir: string, night: string) => Night | null;
