@@ -1,0 +1,48 @@
+# Plan morning-digest § 3–4, ADR 0003: the preview is rendered here and deployed to Pages, never
+# committed. Run with marker off to take the lane marker off the same link.
+name: preview
+
+on:
+  workflow_dispatch:
+    inputs:
+      marker:
+        description: Show LANE_MARKER in the banner
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency: pages
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: pnpm install
+      - name: Save /digest/2026-10-28
+        env:
+          LANE_MARKER: ${{ inputs.marker && secrets.LANE_MARKER || '' }}
+        run: |
+          pnpm start &
+          for i in $(seq 30); do curl -sf http://localhost:8787/health && break; sleep 1; done
+          mkdir _site
+          curl -sf http://localhost:8787/digest/2026-10-28 -o _site/index.html
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+          retention-days: 1
+      - id: deploy
+        uses: actions/deploy-pages@v4
